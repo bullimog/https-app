@@ -1,4 +1,4 @@
-# Control Router
+# Https App
 Spring Boot application to poc https. Accessible on port 8443, by default
 
 Create a self-signed SSL cert:
