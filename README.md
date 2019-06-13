@@ -5,6 +5,7 @@ Spring Boot application to poc https client/server. Accessible on port 8443, by 
 
 
 ## Create a self-signed SSL cert, for server:
+
 > keytool -genkeypair -alias tomcat -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore keystore.p12 -validity 3650
 > keytool -list -v -storetype pkcs12 -keystore keystore.p12
 
@@ -61,7 +62,7 @@ keytool -importcert -alias server-public-key -keyalg RSA -storetype PKCS12 -keys
 
 
 ## Get Tomcat/Spring to pick up a custom keystore
-After creating another keystore, with the public key, add code to ensure Tomcat.Spring picks it up:
+After creating another keystore, with the public key, add code to ensure Tomcat/Spring picks it up:
         String certificatesTrustStorePath = "/<mypath>/server-public-key";
         System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
         System.setProperty("javax.net.ssl.trustStorePassword", "password");
@@ -77,3 +78,43 @@ keytool -import -v -trustcacerts -alias localhost -file ~/Applications/https-app
 # Test Server & Client
 Access page via https, which then calls /greeting, via https/ssl (test server & client):
 > https://localhost:8443/hello
+
+
+
+
+
+# Alternatively, create a Certificate Authority, using openssl
+
+(https://deliciousbrains.com/ssl-certificate-authority-for-local-https-development/)
+
+Generate a private key:
+> openssl genrsa -des3 -out myCA-private.key 2048
+
+Generate a root certificate (A certificate normally contains the public key, plus purpose of cert, issuer, etc.):
+> openssl req -x509 -new -nodes -key myCA-private.key -sha256 -days 1825 -out myCA-RootCert.pem
+
+Place root certificate on all client hosts that will be within your private network. I.e. hosts that will be making
+requests into servers. E.g. a front-end microservice that will call a back-end microservice.
+
+
+## Create CA-signed certificates for server hosts.
+
+Create a private key for a host.
+> openssl genrsa -out dev.mydomain.com.key 2048
+
+Create a CSR (Certificate Signing Request), for the new private key:
+> openssl req -new -key dev.mydomain.com.key -out dev.mergebot.com.csr
+
+Create the certificate using the CSR, the CA private key, the CA certificate, and a config file (dev.mydomain.com.ext):
+> openssl x509 -req -in dev.mydomain.com.csr -CA myCA.pem -CAkey myCA.key -CAcreateserial \
+>  -out dev.mydomain.com.crt -days 1825 -sha256 -extfile dev.mydomain.com.ext
+
+
+The crt and key can then be used to create a jks or p12 file, for use by the Tomcat/Spring.
+All clients with the CA root certificate installed will then trust this server certificate.
+
+
+
+
+More about Swarm certs at:
+http://cicd.life/generate-ssl-for-docker-swarm/
