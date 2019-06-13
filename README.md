@@ -42,7 +42,7 @@ Access greeting, via https (test server):
 
 Populate keystore with public key, required for client access to the https service.
 
-##PKDS12 Keystores:
+## PKDS12 Keystores:
 Export public key from server keystore.p12 , for use by client - create server-public-key.crt:
 keytool -exportcert -alias tomcat -file server-public-key.crt -keystore keystore.p12 -storepass password
 
@@ -51,7 +51,7 @@ Import server public cert/key (server-public-key.crt) into a client trust store 
 keytool -importcert -alias server-public-key -keyalg RSA -storetype PKCS12 -keystore client-truststore.p12  -file server-public-key.crt -storepass password -noprompt
 
 
-##JKS Keystore:
+## JKS Keystore:
 Export public key from keystore.jks , for use by client - create server-public-key.crt:
 keytool -exportcert -alias tomcat -file server-public-key.crt -keystore keystore.jks -storepass password
 
@@ -60,7 +60,7 @@ Import server public cert/key (server-public-key.crt) into client trust store - 
 keytool -importcert -alias server-public-key -keyalg RSA -storetype PKCS12 -keystore client-truststore.p12  -file server-public-key.crt -storepass password -noprompt
 
 
-##Get Tomcat/Spring to pick up a custom keystore
+## Get Tomcat/Spring to pick up a custom keystore
 After creating another keystore, with the public key, add code to ensure Tomcat.Spring picks it up:
         String certificatesTrustStorePath = "/<mypath>/server-public-key";
         System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
